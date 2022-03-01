@@ -31,8 +31,13 @@ def get_files(path, extensions, files_grabbed_list):
         files_grabbed_list.extend(Path(path).glob(ext))
     return files_grabbed_list
 
+
+
     #preserve aspect ration and resize
-def resize_aspect_image(img, mywidth):
+def resize_aspect_image(img, mywidth, myheight):
+    if myheight< mywidth:
+        
+
     wpercent = (mywidth/float(img.size[0]))
     hsize = int((float(img.size[1])*float(wpercent)))
     img = img.resize((mywidth,hsize), Image.ANTIALIAS)
