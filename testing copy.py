@@ -12,6 +12,7 @@ from PIL import Image, ImageTk, ImageOps
 import json
 import glob
 from pathlib import Path
+from myFunctions import *
 
 
 current_image_index = 0
@@ -24,23 +25,14 @@ window.geometry("1000x750")
 #wWidth = window.winfo_width
 
 #store path
-def store_directory(path):
-    if path != "":
-        directory_path = {"path": path}
-        with open('data.json', 'w') as json_file:
-            json.dump(directory_path, json_file)
 
-def get_files(path, extensions):
-    for ext in extensions:
-        files_grabbed.extend(Path(path).glob(ext))
-    return files_grabbed
 
 def select_folder():
     path = filedialog.askdirectory()
     print(path)
     store_directory(path)
      # the tuple of file types
-    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
+    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'),files_grabbed)
 
 
 ###json
@@ -54,12 +46,7 @@ with open('data.json', 'r') as f:
 if path == "":
     print("json path empty ", path)
 else:
-    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
-
-#############Main Image Frame
-
-###image set up
-
+    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'),files_grabbed)
 
 #get image
 if files_grabbed: #returns true
@@ -68,36 +55,12 @@ else:
     image = Image.open("Answered-Prayers-Modern-Horizons.webp")
 
 
-#preserve aspect ration and resize
-def resize_aspect_image(img, mywidth):
-    wpercent = (mywidth/float(img.size[0]))
-    hsize = int((float(img.size[1])*float(wpercent)))
-    img = img.resize((mywidth,hsize), Image.ANTIALIAS)
-    return img
-
 image_resized = resize_aspect_image(image, 512)
 test = ImageTk.PhotoImage(image_resized)
-
-
 
 imageLabel = tk.Label(image=test)
 imageLabel.image = test
 imageLabel.grid(column=0, row=0)
-
-
-###Play/pause next and previous
-
-def update_btn_text():
-    if(play_pause["text"]=="play"):
-        play_pause.configure(text="pause")
-        #pause timer
-    else:
-        play_pause.configure(text="play")
-        #play timer
-
-
-
-
 
 def update_image(index):
     global current_image_index
@@ -118,21 +81,31 @@ def update_image(index):
     imageLabel.configure(image=newImage)
     imageLabel.image = newImage
 
+###Play/pause next and previous
+
+def update_btn_text():
+    if(play_pause["text"]=="play"):
+        play_pause.configure(text="pause")
+        #pause timer
+    else:
+        play_pause.configure(text="play")
+        #play timer
+
 
 ############### Menu frame
 
 timer = tk.Label(text="1:20...", width="5",height="1")
 remaining = tk.Label(text="2/20", width="5",height="1")
-play_pause = tk.Button(window, text="play", command= update_btn_text)
+play_pause = tk.Button(window, text="play", command= lambda: update_btn_text())
 prev = tk.Button(text="prev", width="5",height="1", command=lambda: update_image(False))
 next = tk.Button(text="next", width="5",height="1", command=lambda: update_image(True))
 browserButton = tk.Button(text="browse", width="5",height="1", command=lambda: select_folder)
 
 timer.grid
 remaining.grid
-play_pause.grid
+play_pause.grid(column=0,row=1)
 prev.grid
-next.pack(side=RIGHT)
+next.grid
 browserButton.grid
 
 
