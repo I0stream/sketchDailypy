@@ -21,6 +21,11 @@ files_grabbed = []
 window = tk.Tk()
 window.geometry("1000x750")
 
+window.rowconfigure(4, minsize=2, weight=1)
+window.columnconfigure(2, minsize=800, weight=1)
+
+
+fr_buttons = tk.Frame(window)
 #wHeight = window.winfo_height
 #wWidth = window.winfo_width
 
@@ -51,6 +56,7 @@ else:
 #get image
 if files_grabbed: #returns true
     image = Image.open(files_grabbed[current_image_index])
+    print("uncomment me")
 else:
     image = Image.open("Answered-Prayers-Modern-Horizons.webp")
 
@@ -58,9 +64,9 @@ else:
 image_resized = resize_aspect_image(image, 512)
 test = ImageTk.PhotoImage(image_resized)
 
-imageLabel = tk.Label(image=test)
+imageLabel = tk.Label(window, image=test)
 imageLabel.image = test
-imageLabel.grid(column=0, row=0)
+imageLabel.grid(row=0, column=0, sticky="nsew")
 
 def update_image(index):
     global current_image_index
@@ -84,31 +90,31 @@ def update_image(index):
 ###Play/pause next and previous
 
 def update_btn_text():
-    if(play_pause["text"]=="play"):
-        play_pause.configure(text="pause")
+    if(play_pause["text"]==">"):
+        play_pause.configure(text="||")
         #pause timer
     else:
-        play_pause.configure(text="play")
+        play_pause.configure(text=">")
         #play timer
 
 
 ############### Menu frame
+#example        frame window, label text,   button dimensions, command=anonymous function
+timer = tk.Label(fr_buttons, text="1:20...", width="5",height="1")
+remaining = tk.Label(fr_buttons, text="2/20", width="5",height="1")
+play_pause = tk.Button(fr_buttons, text=">", command= lambda: update_btn_text())
+prev = tk.Button(fr_buttons, text="<<", width="5",height="1", command=lambda: update_image(False))
+next = tk.Button(fr_buttons, text=">>", width="5",height="1", command=lambda: update_image(True))
+browserButton = tk.Button(fr_buttons, text="browse", width="5",height="1", command=lambda: select_folder)
 
-timer = tk.Label(text="1:20...", width="5",height="1")
-remaining = tk.Label(text="2/20", width="5",height="1")
-play_pause = tk.Button(window, text="play", command= lambda: update_btn_text())
-prev = tk.Button(text="prev", width="5",height="1", command=lambda: update_image(False))
-next = tk.Button(text="next", width="5",height="1", command=lambda: update_image(True))
-browserButton = tk.Button(text="browse", width="5",height="1", command=lambda: select_folder)
+timer.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+remaining.grid(row=1, column=1, columnspan=2, padx=5)
+play_pause.grid(row=2, column=1, columnspan=2, padx=5)
+prev.grid(row=3, column=1)
+next.grid(row=3, column=2)
+browserButton.grid(row=4, column=1, columnspan=2, padx=5)
 
-timer.grid
-remaining.grid
-play_pause.grid(column=0,row=1)
-prev.grid
-next.grid
-browserButton.grid
-
-
+fr_buttons.grid(row=0,column=1)
 
 
 #####
