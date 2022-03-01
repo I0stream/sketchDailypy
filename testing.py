@@ -7,7 +7,7 @@ Created on Sat Feb 26 10:43:53 2022
 """
 
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import LEFT, RIGHT, filedialog, Canvas
 from PIL import Image, ImageTk, ImageOps
 import json
 import glob
@@ -20,6 +20,8 @@ files_grabbed = []
 window = tk.Tk()
 window.geometry("1000x750")
 
+#wHeight = window.winfo_height
+#wWidth = window.winfo_width
 
 #store path
 def store_directory(path):
@@ -54,23 +56,42 @@ if path == "":
 else:
     files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
 
+#############Main Image Frame
 
-###image display
+###image set up
 
-image = Image.open(files_grabbed[current_image_index])
-image2 = ImageOps.contain(image, (512,512))
-test = ImageTk.PhotoImage(image2)
+
+#get image
+if files_grabbed: #returns true
+    image = Image.open(files_grabbed[current_image_index])
+else:
+    image = Image.open("Answered-Prayers-Modern-Horizons.webp")
+
+
+#preserve aspect ration and resize
+def resize_aspect_image(img, mywidth):
+    wpercent = (mywidth/float(img.size[0]))
+    hsize = int((float(img.size[1])*float(wpercent)))
+    img = img.resize((mywidth,hsize), Image.ANTIALIAS)
+    return img
+
+image_resized = resize_aspect_image(image, 512)
+test = ImageTk.PhotoImage(image_resized)
+
+
 
 imageLabel = tk.Label(image=test)
 imageLabel.image = test
-imageLabel.pack()
+imageLabel.pack(side=LEFT)
 
-### menu
+
+
+############### Menu frame
 timer = tk.Label(text="1:20...", width="5",height="1")
-timer.pack()
+timer.pack(side=RIGHT)
 
 remaining = tk.Label(text="2/20", width="5",height="1")
-remaining.pack()
+remaining.pack(side=RIGHT)
 
 
 ###Play/pause next and previous
@@ -78,11 +99,13 @@ remaining.pack()
 def update_btn_text():
     if(play_pause["text"]=="play"):
         play_pause.configure(text="pause")
+        #pause timer
     else:
         play_pause.configure(text="play")
+        #play timer
 
-play_pause = tk.Button(window, text="play", command=lambda: update_btn_text)
-play_pause.pack()
+play_pause = tk.Button(window, text="play", command= update_btn_text)
+play_pause.pack(side=RIGHT)
 
 
 
@@ -95,20 +118,24 @@ def update_image(index):
 
     if current_image_index <= 0 and not index:
         current_image_index = len(files_grabbed)-1
+    elif current_image_index == len(files_grabbed) - 1 and index:
+        current_image_index = 0
+    
+    print("current index: ", current_image_index)
 
-
-    newImage = ImageTk.PhotoImage(Image.open(files_grabbed[index]))
-    imageLabel.configure(image=newImage2)
+    nimg = Image.open(files_grabbed[current_image_index])
+    newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, 512))
+    imageLabel.configure(image=newImage)
     imageLabel.image = newImage
 
 
 
 
 prev = tk.Button(text="prev", width="5",height="1", command=lambda: update_image(False))
-prev.pack()
+prev.pack(side=RIGHT)
 
 next = tk.Button(text="next", width="5",height="1", command=lambda: update_image(True))
-next.pack()
+next.pack(side=RIGHT)
 
 
 
@@ -116,12 +143,8 @@ next.pack()
 
 
 
-
-
-
-
 browserButton = tk.Button(text="browse", width="5",height="1", command=lambda: select_folder)
-browserButton.pack()
+browserButton.pack(side=RIGHT)
 
 
 
