@@ -34,11 +34,18 @@ def get_files(path, extensions, files_grabbed_list):
 
 
     #preserve aspect ration and resize
+    
 def resize_aspect_image(img, mywidth, myheight):
-    if myheight< mywidth:
-        
+    #if myheight < mywidth:
 
     wpercent = (mywidth/float(img.size[0]))
+    hpercent = (myheight/float(img.size[1]))
+
+    wsize  = int((float(img.size[0])*float(hpercent)))
     hsize = int((float(img.size[1])*float(wpercent)))
-    img = img.resize((mywidth,hsize), Image.ANTIALIAS)
+
+    if wsize >= hsize:
+        img = img.resize((mywidth,hsize), Image.ANTIALIAS)
+    else:
+        img = img.resize((wsize,myheight), Image.ANTIALIAS)
     return img

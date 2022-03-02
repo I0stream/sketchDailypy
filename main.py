@@ -6,8 +6,10 @@ Created on Sat Feb 26 10:43:53 2022
 @author: danielschliesing
 """
 
+from cgitb import grey
 import tkinter as tk
-from tkinter import LEFT, RIGHT, filedialog, Canvas
+from tkinter import CENTER, LEFT, RIGHT, TOP, filedialog, Canvas
+from turtle import bgcolor
 from PIL import Image, ImageTk, ImageOps
 import json
 import glob
@@ -20,14 +22,25 @@ files_grabbed = []
 
 window = tk.Tk()
 window.geometry("1000x750")
+window['background']='#2A2B2E'
+
+#remove title bar completely
+#window.overrideredirect(1)
+#window.overrideredirect(0)
+
 
 window.rowconfigure(4, minsize=2, weight=1)
-window.columnconfigure(2, minsize=800, weight=1)
+window.columnconfigure(2, minsize=200, weight=1)
+window.columnconfigure(1, minsize=200, weight=1)
 
+fr_image = tk.Frame(window, bg="#2A2B2E" )
 
-fr_buttons = tk.Frame(window)
-#wHeight = window.winfo_height
-#wWidth = window.winfo_width
+fr_buttons = tk.Frame(window, bg="grey" )
+
+wWidth = 800#window.winfo_width
+wHeight = 750#window.winfo_height only works on 'command' ie after intitial window loop
+
+#fr_buttons.columnconfigure
 
 #store path
 
@@ -56,17 +69,20 @@ else:
 #get image
 if files_grabbed: #returns true
     image = Image.open(files_grabbed[current_image_index])
-    print("uncomment me")
 else:
     image = Image.open("Answered-Prayers-Modern-Horizons.webp")
 
 
-image_resized = resize_aspect_image(image, 512)
+image_resized = resize_aspect_image(image, wWidth, wHeight)
 test = ImageTk.PhotoImage(image_resized)
 
-imageLabel = tk.Label(window, image=test)
+imageLabel = tk.Label(fr_image, image=test, bg= "#2A2B2E")
 imageLabel.image = test
-imageLabel.grid(row=0, column=0, sticky="nsew")
+#imageLabel.grid(row=0, column=0, padx=20)
+imageLabel.config(anchor=CENTER)
+imageLabel.pack()
+
+fr_image.pack(side=LEFT, expand=True)
 
 def update_image(index):
     global current_image_index
@@ -83,7 +99,7 @@ def update_image(index):
     print("current index: ", current_image_index)
 
     nimg = Image.open(files_grabbed[current_image_index])
-    newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, 512))
+    newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, wWidth, wHeight))
     imageLabel.configure(image=newImage)
     imageLabel.image = newImage
 
@@ -107,15 +123,23 @@ prev = tk.Button(fr_buttons, text="<<", width="5",height="1", command=lambda: up
 next = tk.Button(fr_buttons, text=">>", width="5",height="1", command=lambda: update_image(True))
 browserButton = tk.Button(fr_buttons, text="browse", width="5",height="1", command=lambda: select_folder)
 
-timer.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
-remaining.grid(row=1, column=1, columnspan=2, padx=5)
-play_pause.grid(row=2, column=1, columnspan=2, padx=5)
-prev.grid(row=3, column=1)
-next.grid(row=3, column=2)
-browserButton.grid(row=4, column=1, columnspan=2, padx=5)
+#timer.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+#remaining.grid(row=1, column=1, columnspan=2, padx=5)
+#play_pause.grid(row=2, column=1, columnspan=2, padx=5)
+#prev.grid(row=3, column=1)
+#next.grid(row=3, column=2)
+#browserButton.grid(row=4, column=1, columnspan=2, padx=5)
 
-fr_buttons.grid(row=0,column=1)
+#fr_buttons.grid(row=0,column=1, sticky= "e")
 
+timer.pack(side=TOP)
+remaining.pack(side=TOP)
+play_pause.pack(side=TOP)
+prev.pack(side=TOP)
+next.pack(side=TOP)
+browserButton.pack(side=TOP)
+
+fr_buttons.pack(side=RIGHT)
 
 #####
 
