@@ -62,3 +62,8 @@ def resize_aspect_image(img, mywidth, myheight):
         img = img.resize((wsize,myheight), Image.ANTIALIAS)
     return img
 
+def shorten_path(file_paths, length):
+    intermediate = []
+    for path in file_paths:
+        intermediate.append(Path(*Path(path).parts[-length:]))
+    return intermediate

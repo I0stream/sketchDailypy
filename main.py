@@ -9,7 +9,7 @@ Created on Sat Feb 26 10:43:53 2022
 from cgitb import grey
 from textwrap import fill
 import tkinter as tk
-from tkinter import BOTH, CENTER, LEFT, RIGHT, TOP, SINGLE, StringVar, filedialog, Canvas
+from tkinter import BOTH, CENTER, LEFT, RIGHT, TOP, SINGLE, StringVar, filedialog, Canvas, font
 from turtle import bgcolor
 from PIL import Image, ImageTk, ImageOps
 import json
@@ -17,6 +17,7 @@ import glob
 from pathlib import Path
 from myFunctions import *
 import os
+
 
 
 current_image_index = 0
@@ -29,10 +30,6 @@ window['background']='#2A2B2E'
 #remove title bar completely
 #window.overrideredirect(1)
 #window.overrideredirect(0)
-
-window.rowconfigure(4, minsize=2, weight=1)
-window.columnconfigure(2, minsize=200, weight=1)
-window.columnconfigure(1, minsize=200, weight=1)
 
 fr_image = tk.Frame(window, bg="#2A2B2E" )
 fr_buttons = tk.Frame(window, bg="grey")
@@ -47,13 +44,14 @@ timer_time.set("0:00:00")
 options_list = ["Class Mode", "1 H", "30 M",
                  "10 M", "5 M", "1 M", "30 S", "Custom"]
 
+
 directory_list = []
 value_inside = StringVar(window)
 value_inside.set("Select a Timer")
 
 
 directory_value = StringVar(window)
-directory_value.set("directory")
+directory_value.set("Folders")
 selected_time = 0
 
 #store path
@@ -106,13 +104,14 @@ fr_image.pack(side=LEFT, expand=True)
 
 def update_image(index):
     global current_image_index
+
     if index:
         current_image_index += 1
     else:
         current_image_index -= 1
 
     if current_image_index <= 0 and not index:
-        current_image_index = len(files_grabbed)-1
+        current_image_index = len(files_grabbed) - 1
     elif current_image_index == len(files_grabbed) - 1 and index:
         current_image_index = 0
     
@@ -174,20 +173,28 @@ def print_answers():
 def custom():
     print("bring up a menu to enter repeated times")
 
-user_directories = tk.StringVar(value = os.path.basename(os.path.normpath(path)))
+user_directories =  os.path.basename(os.path.normpath(path))
 
 ############### Menu frame
+
+titleFont = ("Times", "24", "bold italic")
+
+
 #example        frame window, label text,   button dimensions, command=anonymous function
-timer = tk.Label(fr_buttons, textvariable=timer_time, width="5",height="1")
+title = tk.Label(fr_buttons, text="/"+user_directories, font=titleFont)
+timer = tk.Label(fr_buttons, textvariable=timer_time, font=("Times","20"))
 #remaining = tk.Label(fr_buttons, text="2/20", width="5",height="1")
 timer_picker_menu = tk.OptionMenu(fr_buttons, value_inside, *options_list)
 play_pause = tk.Button(fr_ppn, text=">", command= lambda: update_btn_text())
 prev = tk.Button(fr_ppn, text="<<", command=lambda: update_image(False))
 next = tk.Button(fr_ppn, text=">>", command=lambda: update_image(True))
 browser_button = tk.Button(fr_buttons, text="browse", width="5",height="1", command=lambda: select_folder(files_grabbed))
-directory_box = tk.OptionMenu(fr_buttons, directory_value, *directory_list)
+directory_box = tk.OptionMenu(fr_buttons, directory_value, *shorten_path(directory_list, 2))
 
-#timer.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+
+#tk.Listbox.pack(fr_buttons)
+
+#timer.grid(row=0, column=1, columnspan=2, , pady=5)
 #remaining.grid(row=1, column=1, columnspan=2, padx=5)
 #play_pause.grid(row=2, column=1, columnspan=2, padx=5)
 #prev.grid(row=3, column=1)
@@ -196,15 +203,17 @@ directory_box = tk.OptionMenu(fr_buttons, directory_value, *directory_list)
 
 #fr_buttons.grid(row=0,column=1, sticky= "e")
 
-timer.pack(side=TOP)
+title.pack(side=TOP, fill=BOTH)
+timer.pack(side=TOP, fill=BOTH)
 #remaining.pack(side=TOP)
 prev.pack(side=LEFT)
 next.pack(side=RIGHT)
 play_pause.pack(side=RIGHT)
-fr_ppn.pack()
-timer_picker_menu.pack(side=TOP)
-browser_button.pack(side=TOP)
-directory_box.pack(side=TOP)
+fr_ppn.pack(fill=BOTH)
+timer_picker_menu.pack(side=TOP, fill=BOTH)
+directory_box.pack(side=TOP, fill=BOTH)
+browser_button.pack(side=TOP, fill=BOTH)
+
 
 fr_buttons.pack(side=RIGHT, fill=BOTH)
 
