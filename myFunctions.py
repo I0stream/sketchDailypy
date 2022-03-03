@@ -10,21 +10,33 @@ def shuffle(arr):
     return random.shuffle(arr)
 
 
-def countdowntimer(t):
-    while t:
-        mins, sec = divmod(t, 60)
-        timer = '{:02d}:{:02d}'.format(mins,sec)
-        print(timer, end="\r")
-        time.sleep(1)
-        t -= 1
-    print("end/next photo")
-
 def store_directory(path):
     if path != "":
-        directory_path = {"path": path}
-        with open('data.json', 'w') as json_file:
-            json.dump(directory_path, json_file)
 
+        with open('data.json', 'r') as json_file:
+            data = json.load(json_file)
+            paths = data['paths']
+            print("path to append", path)
+            paths.append(path)
+
+            json_file.close()
+            
+            newpath = {"paths": paths} 
+            with open('data.json', 'w') as json_file:
+                json.dump(newpath, json_file)
+
+def remove_directory(path_to_remove):
+    with open('data.json', 'r') as json_file:
+            data = json.load(json_file)
+            paths = data['paths']
+            print("remove", path_to_remove)
+            paths.remove(path_to_remove)
+
+            json_file.close()
+            
+            newpath = {"paths": paths} 
+            with open('data.json', 'w') as json_file:
+                json.dump(newpath, json_file)
     #using path get files from directory
 def get_files(path, extensions, files_grabbed_list):
     for ext in extensions:
@@ -49,3 +61,4 @@ def resize_aspect_image(img, mywidth, myheight):
     else:
         img = img.resize((wsize,myheight), Image.ANTIALIAS)
     return img
+
