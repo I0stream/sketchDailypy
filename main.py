@@ -17,6 +17,7 @@ import glob
 from pathlib import Path
 from myFunctions import *
 import os
+import time
 
 
 
@@ -25,22 +26,24 @@ files_grabbed = []
 
 window = tk.Tk()
 window.geometry("1000x750")
-window['background']='#2A2B2E'
+window['background']='#050203'
 window.title("Sketch Ref")
 
-fr_image = tk.Frame(window, bg="#2A2B2E" )
-fr_buttons = tk.Frame(window, bg="grey")
+fr_image = tk.Frame(window, bg="#050203" )
+fr_buttons = tk.Frame(window, bg="#2A2B2E")
 fr_ppn = tk.Frame(fr_buttons, bg="#2A2B2E")
 
 wWidth = 800#window.winfo_width
 wHeight = 750#window.winfo_height only works on 'command' ie after intitial window loop
 
-timer_time = StringVar()
-timer_time.set("0:00:00")
+
+timer_time = "0:00:00"
 timer_actual = 0 #in minutes
+time_chosen = 0
+play = False
 
 options_list = ["Class Mode", "1 H", "30 M",
-                 "10 M", "5 M", "1 M", "30 S"]
+                 "10 M", "5 M", "1 M", "30 S", "10 S"]
 
 
 directory_list = []
@@ -91,7 +94,7 @@ else:
 image_resized = resize_aspect_image(image, wWidth, wHeight)
 test = ImageTk.PhotoImage(image_resized)
 
-imageLabel = tk.Label(fr_image, image=test, bg= "#2A2B2E")
+imageLabel = tk.Label(fr_image, image=test, bg= "#050203")
 imageLabel.image = test
 #copy_of_image = image.copy()
 
@@ -143,58 +146,95 @@ def change_directory():
 ###Play/pause next and previous
 
 def update_btn_text():
+    global play
     if(play_pause["text"]==">"):
-        countdowntimer(timer_actual, True)
+        play = True
+        countdowntimer()
         play_pause.configure(text="||")
 
         #pause timer
     else:
+        play = False
         play_pause.configure(text=">")
-        countdowntimer(timer_actual, False)
+        countdowntimer()
         #play timer
 
-def countdowntimer(t, play):
-    t = t * 60
-    while t and play:
-        mins, sec = divmod(t, 60)
-        timer = '{:02d}:{:02d}'.format(mins,sec)
-        print(timer, end="\r")
-        time.sleep(1)
-        t -= 1
-    else:
-        print("pause")
-    
-        
+def countdowntimer():
+    global timer_actual
+    global time_chosen
+    global play
 
+    if not time_chosen:
+        #if unchosen time and pres pause/play do nothing
+        return
+    elif not timer_actual:
+        print("end")
+        timer_actual = time_chosen
+        play = True
+        update_image(True)
+        countdowntimer()
+    elif timer_actual and play:
+
+        timer_actual -= 1
+        print("seconds", timer_actual)
+        timer_text = str(timer_actual) + "seconds"
+        timer_label.configure(text=timer_text)
+        #timer_time.set(timer_text)
+        #if (ut == 0):
+        #    timer_time.set('Times up!')
+        #    return 
+        window.after(1000, countdowntimer)
+    elif not play and timer_actual:
+        #paused
+        return
+
+timer_label = tk.Label(fr_buttons, text=timer_time, font=("Times","20"))
 
 def option_changed(self):
     x = value_inside.get()
+    global timer_actual
+    global timer_label
+    global time_chosen
     if x == "Class Mode":
         #[0.5,0.5,0.5,0.5,0.5,0.5,0,5,0,5,1,1,1,1,1,5,5,10,30]  
         print("do class mode")
     elif x == "1 H":
-        timer_time.set("1:00:00")
-        timer_actual = 60
+        timer_label.configure(text="1:00:00")
+        timer_actual = 3600
+        time_chosen = timer_actual
     elif x ==  "30 M":
-        timer_time.set("30:00")
-        timer_actual = 30
+        timer_label.configure(text="30:00")
+        timer_actual = 1800
+        time_chosen = timer_actual
     elif x ==  "10 M":
-        timer_time.set("10:00")
-        timer_actual = 10
+        timer_label.configure(text="10:00")
+        timer_actual = 600
+        time_chosen = timer_actual
     elif x ==  "5 M":
-        timer_time.set("5:00")
-        timer_actual = 5
+        timer_label.configure(text="05:00")
+        timer_actual = 300
+        time_chosen = timer_actual
     elif x == "1 M":
-        timer_time.set("1:00")
-        timer_actual= 1
+        timer_label.configure(text="01:00")
+        timer_actual= 60
+        time_chosen = timer_actual
     elif x == "30 S":
-        timer_time.set("0:30")
-        timer_actual = 0.5
+        timer_label.configure(text="00:30")
+        timer_actual = 30
+        time_chosen = timer_actual
+    elif x == "10 S":
+        timer_label.configure(text="00:10")
+        timer_actual = 10
+        time_chosen = timer_actual
     print("Selected Option: {}".format(value_inside.get()))
 
 def time_reset():
     print("do something")
 
+def shuffle():
+    global files_grabbed 
+    files_grabbed = random.shuffle(files_grabbed)
+    update_image(True)
 
 ############### Menu frame
 
@@ -205,10 +245,10 @@ user_directories =  os.path.basename(os.path.normpath(path))
 
 
 #example        frame window, label text,   button dimensions, command=anonymous function
-title = tk.Label(fr_buttons, text="/"+user_directories, font=titleFont)
-timer = tk.Label(fr_buttons, textvariable=timer_time, font=("Times","20"))
+title = tk.Label(fr_buttons, text="/"+user_directories, font=titleFont, bg="#2A2B2E")
 #remaining = tk.Label(fr_buttons, text="2/20", width="5",height="1")
 timer_picker_menu = tk.OptionMenu(fr_buttons, value_inside, *options_list, command= option_changed)
+shuffle_button = tk.Button(fr_ppn, text="~~", command=lambda: shuffle())
 play_pause = tk.Button(fr_ppn, text=">", width="2", command= lambda: update_btn_text())
 prev = tk.Button(fr_ppn, text="<<", command=lambda: update_image(False))
 next = tk.Button(fr_ppn, text=">>", command=lambda: update_image(True))
@@ -227,8 +267,9 @@ directory_box = tk.OptionMenu(fr_buttons, directory_value, *shorten_path(directo
 #fr_buttons.grid(row=0,column=1, sticky= "e")
 
 title.pack(side=TOP, fill=BOTH)
-timer.pack(side=TOP, fill=BOTH)
+timer_label.pack(side=TOP, fill=BOTH)
 #remaining.pack(side=TOP)
+shuffle_button.pack(side=TOP)
 prev.pack(side=LEFT)
 next.pack(side=RIGHT)
 play_pause.pack(side=RIGHT, fill=BOTH)
