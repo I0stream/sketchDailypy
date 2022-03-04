@@ -60,7 +60,10 @@ def resize_aspect_image(img, mywidth, myheight):
         img = img.resize((mywidth,hsize), Image.ANTIALIAS)
     else:
         img = img.resize((wsize,myheight), Image.ANTIALIAS)
+        #if width exceeds container, resize smaller
     return img
+
+
 
 def shorten_path(file_paths, length):
     intermediate = []
