@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Sat Feb 26 10:43:53 2022
 
 @author: danielschliesing
 """
 
-from cgitb import grey
 from textwrap import fill
 import tkinter as tk
-from tkinter import BOTH, CENTER, LEFT, RIGHT, TOP, SINGLE, StringVar, filedialog, Canvas, font
+from tkinter import BOTH, CENTER, LEFT, RIGHT, TOP, SINGLE, StringVar, filedialog
 from turtle import bgcolor
 from PIL import Image, ImageTk, ImageOps
 import json
-import glob
 from pathlib import Path
 from myFunctions import *
 import os
-import time
+import io
 
 
-#{"paths": ["/Users/danielschliesing/Desktop/current", "/Users/danielschliesing/Desktop/portraits"],
-#"currently_selected": "/Users/danielschliesing/Desktop/current"}
+#{"paths": ["/Users/danielschliesing/Desktop/portraits", "/Users/danielschliesing/Desktop/ref/Current", "/Users/danielschliesing/Desktop/ref/nekked"], "currently_selected": "/Users/danielschliesing/Desktop/ref/Current"}
 
 window = tk.Tk()
 window.geometry("1000x750")
@@ -48,6 +44,7 @@ directory_value = StringVar(window)
 selected_time = 0
 files_grabbed = []
 
+json_path = 'data.json'
 ###json
 #if json folder directory is not empty, grab img from path and display
 
@@ -55,13 +52,29 @@ files_grabbed = []
 #check if json path empty
 #check if paths valid
 #then load
-with open('data.json', 'r') as f:
-    data = json.load(f)
-    
-    for x in data['paths']:
-        directory_list.append(x)
 
-    path = data['currently_selected']
+def startupCheck():
+    global path
+    if os.path.isfile(json_path) and os.access(json_path, os.R_OK):
+        # checks if file exists
+        with open(json_path, 'r') as f:
+ 
+            data = json.load(f)
+            
+            for x in data['paths']:
+                directory_list.append(x)
+            
+            path = data['currently_selected']
+    else:
+        print ("Either file is missing or is not readable, creating file...")
+        with io.open(os.path.join('data.json'), 'w') as db_file:
+            newpath = {"paths": [], "currently_selected": ""}          
+            db_file.write(json.dumps(newpath))
+        path = ""
+
+startupCheck()
+
+
 
 
 if path == "":
@@ -74,6 +87,8 @@ if files_grabbed: #returns true
     image = Image.open(files_grabbed[current_image_index])
 else:
     image = Image.open("no_pics.png")
+    if path != "":
+        remove_directory(path)
     
 
 
@@ -135,6 +150,8 @@ def change_directory(event):
         update_image()
         currently_selected_store(fullpath)
     else:
+        directory_list.remove(fullpath)
+        remove_directory(fullpath)
         update_image()
 
 ###Play/pause next and previous
@@ -224,28 +241,34 @@ def shuffle():
     random.shuffle(files_grabbed)
     update_image()
 
+titleFont = ("Times", "24", "bold italic")
+user_directories =  os.path.basename(os.path.normpath(path))
+title = tk.Label(fr_buttons, text="/"+user_directories, font=titleFont, bg="#2A2B2E", fg="white")
+
 #store path, browser button
 def select_folder(files):
     global files_grabbed
     path = filedialog.askdirectory()
     store_directory(path)
      # the tuple of file types
+    directory_list.append(path)
     files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
+    update_image()
+
 
 ############### Menu frame
 
-titleFont = ("Times", "24", "bold italic")
-user_directories =  os.path.basename(os.path.normpath(path))
 
 #example        frame window, label text,   button dimensions, command=anonymous function
-title = tk.Label(fr_buttons, text="/"+user_directories, font=titleFont, bg="#2A2B2E", fg="white")
 timer_picker_menu = tk.OptionMenu(fr_buttons, value_inside, *options_list, command= option_changed)
-shuffle_button = tk.Button(fr_ppn, text="~~", command=lambda: shuffle(), bg="#2A2B2E")
-play_pause = tk.Button(fr_ppn, text=">", width="2", command= lambda: update_btn_text(), bg="#2A2B2E")
+shuffle_button = tk.Button(fr_ppn, width=3, text="~~", command=lambda: shuffle())
+play_pause = tk.Button(fr_ppn, width=3, text=">", command= lambda: update_btn_text(), bg="#2A2B2E")
 prev = tk.Button(fr_ppn, text="<<", command=lambda: update_image(1), bg="#2A2B2E")
 next = tk.Button(fr_ppn, text=">>", command=lambda: update_image(2), bg="#2A2B2E")
 browser_button = tk.Button(fr_buttons, text="browse", command=lambda: select_folder(files_grabbed), bg="#2A2B2E")
-directory_box = tk.OptionMenu(fr_buttons, directory_value, *shorten_path(directory_list, 2), command=change_directory)
+
+if directory_list != []:
+    directory_box = tk.OptionMenu(fr_buttons, directory_value, *shorten_path(directory_list, 2), command=change_directory)
 
 title.pack(side=TOP, fill=BOTH)
 timer_label.pack(side=TOP, fill=BOTH)
@@ -255,7 +278,8 @@ next.pack(side=RIGHT)
 play_pause.pack(side=RIGHT, fill=BOTH)
 fr_ppn.pack(fill=BOTH)
 timer_picker_menu.pack(side=TOP, fill=BOTH)
-directory_box.pack(side=TOP, fill=BOTH)
+if directory_list != []:
+    directory_box.pack(side=TOP, fill=BOTH)
 browser_button.pack(side=TOP, fill=BOTH)
 
 

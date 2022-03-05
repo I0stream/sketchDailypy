@@ -14,13 +14,11 @@ def store_directory(path):
         with open('data.json', 'r') as json_file:
             data = json.load(json_file)
             paths = data['paths']
-            currently_sel = data['currently_selected']
-            print("path to append", path)
             paths.append(path)
 
             json_file.close()
             
-            newpath = {"paths": paths, "currently_selected": currently_sel} 
+            newpath = {"paths": paths, "currently_selected": path} 
             with open('data.json', 'w') as json_file:
                 json.dump(newpath, json_file)
 
