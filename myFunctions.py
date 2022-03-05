@@ -1,7 +1,5 @@
 import random
-import time
 import json
-import glob
 from PIL import Image
 from pathlib import Path
 
@@ -16,12 +14,13 @@ def store_directory(path):
         with open('data.json', 'r') as json_file:
             data = json.load(json_file)
             paths = data['paths']
+            currently_sel = data['currently_selected']
             print("path to append", path)
             paths.append(path)
 
             json_file.close()
             
-            newpath = {"paths": paths} 
+            newpath = {"paths": paths, "currently_selected": currently_sel} 
             with open('data.json', 'w') as json_file:
                 json.dump(newpath, json_file)
 
@@ -29,14 +28,28 @@ def remove_directory(path_to_remove):
     with open('data.json', 'r') as json_file:
             data = json.load(json_file)
             paths = data['paths']
+            currently_sel = data['currently_selected']
             print("remove", path_to_remove)
             paths.remove(path_to_remove)
-
             json_file.close()
             
-            newpath = {"paths": paths} 
+            newpath = {"paths": paths, "currently_selected": currently_sel} 
             with open('data.json', 'w') as json_file:
                 json.dump(newpath, json_file)
+                json_file.close()
+
+def currently_selected_store(path):
+    if path != "":
+        with open('data.json', 'r') as json_file:
+            data = json.load(json_file)
+            paths = data['paths']
+            json_file.close()
+
+            with open('data.json', 'w') as json_file:
+
+                json.dump({"paths": paths, "currently_selected": path}, json_file)
+                json_file.close()
+
     #using path get files from directory
 def get_files(path, extensions):
     files_grabbed_list = []

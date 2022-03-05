@@ -20,8 +20,8 @@ import os
 import time
 
 
-
-
+#{"paths": ["/Users/danielschliesing/Desktop/current", "/Users/danielschliesing/Desktop/portraits"],
+#"currently_selected": "/Users/danielschliesing/Desktop/current"}
 
 window = tk.Tk()
 window.geometry("1000x750")
@@ -35,7 +35,7 @@ fr_buttons = tk.Frame(window, bg="#2A2B2E")
 fr_ppn = tk.Frame(fr_buttons, bg="#2A2B2E")
 wWidth = 800#window.winfo_width
 wHeight = 750#window.winfo_height only works on 'command' ie after intitial window loop
-timer_time = "0:00:00"
+timer_time = "0:00"
 timer_actual = 0 #in minutes
 time_chosen = 0
 play = False
@@ -48,29 +48,21 @@ directory_value = StringVar(window)
 selected_time = 0
 files_grabbed = []
 
-#store path
-
-
-def select_folder(files):
-    global files_grabbed
-    path = filedialog.askdirectory()
-    print(path)
-    store_directory(path)
-     # the tuple of file types
-    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
-
-
 ###json
 #if json folder directory is not empty, grab img from path and display
 
-##load, if empty do x
+##load
+#check if json path empty
+#check if paths valid
+#then load
 with open('data.json', 'r') as f:
     data = json.load(f)
     
     for x in data['paths']:
         directory_list.append(x)
 
-    path = data['paths'][0]
+    path = data['currently_selected']
+
 
 if path == "":
     print("please pick a folder with reference pictures in it ", path)
@@ -81,25 +73,19 @@ else:
 if files_grabbed: #returns true
     image = Image.open(files_grabbed[current_image_index])
 else:
-    image = Image.open("Answered-Prayers-Modern-Horizons.webp")
+    image = Image.open("no_pics.png")
+    
 
 
 image_resized = resize_aspect_image(image, wWidth, wHeight)
 test = ImageTk.PhotoImage(image_resized)
-
 imageLabel = tk.Label(fr_image, image=test, bg= "#050203")
 imageLabel.image = test
-#copy_of_image = image.copy()
-
-#imageLabel.grid(row=0, column=0, padx=20)
 imageLabel.config(anchor=CENTER)
 imageLabel.pack()
-
+fr_image.pack(side=LEFT, expand=True)
 
 directory_value.set(Path(*Path(path).parts[-2:]))
-
-
-fr_image.pack(side=LEFT, expand=True)
 
 def update_image(index = 0):
     global current_image_index
@@ -118,13 +104,19 @@ def update_image(index = 0):
     elif index == 0:
         current_image_index = 0
 
-    print("current index: ", current_image_index)
 
-    nimg = Image.open(files_grabbed[current_image_index])
+    if files_grabbed: #returns true
+        nimg = Image.open(files_grabbed[current_image_index])
+    
     #copy_of_image = nimg
-    newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, wWidth, wHeight))
-    imageLabel.configure(image=newImage)
-    imageLabel.image = newImage
+        newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, wWidth, wHeight))
+        imageLabel.configure(image=newImage)
+        imageLabel.image = newImage
+    else:
+        nimg = Image.open("no_pics.png")
+        newImage = ImageTk.PhotoImage(resize_aspect_image(nimg, wWidth, wHeight))
+        imageLabel.configure(image=newImage)
+        imageLabel.image = newImage
 
 
 def change_directory(event):
@@ -139,14 +131,14 @@ def change_directory(event):
     fullpath = fullpath[0]
     #get images
     files_grabbed = get_files(fullpath,('*.jpg', '*.png', '*.jpeg'))
-    print(files_grabbed)
-    #set current img index to 0
-    #change images and reconfigure
-    update_image()
+    if files_grabbed: #returns true
+        update_image()
+        currently_selected_store(fullpath)
+    else:
+        update_image()
 
 ###Play/pause next and previous
-def set_currently_selected_path():
-    print('sdf')
+
 
 def update_btn_text():
     global play
@@ -170,21 +162,20 @@ def countdowntimer():
     if not time_chosen:
         #if unchosen time and pres pause/play do nothing
         return
-    elif not timer_actual:
-        print("end")
+    elif not timer_actual:#timer over
         timer_actual = time_chosen
         play = True
         update_image(True)
         countdowntimer()
-    elif timer_actual and play:
-        print("seconds", timer_actual)
-        timer_text = str(timer_actual) + "s"
+    elif timer_actual and play:#timer going
+        min = timer_actual // 60
+        sec = timer_actual % 60
+        timer_text = str(min) + ":" + str(sec)
         timer_label.configure(text=timer_text)
         timer_actual -= 1
 
         window.after(1000, countdowntimer)
-    elif not play and timer_actual:
-        #paused
+    elif not play and timer_actual:#paused
         return
 
 timer_label = tk.Label(fr_buttons, text=timer_time, font=("Times","20"), bg="#2A2B2E", fg="white")
@@ -232,6 +223,14 @@ def shuffle():
     global files_grabbed 
     random.shuffle(files_grabbed)
     update_image()
+
+#store path, browser button
+def select_folder(files):
+    global files_grabbed
+    path = filedialog.askdirectory()
+    store_directory(path)
+     # the tuple of file types
+    files_grabbed = get_files(path,('*.jpg', '*.png', '*.jpeg'))
 
 ############### Menu frame
 
