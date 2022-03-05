@@ -38,7 +38,8 @@ def remove_directory(path_to_remove):
             with open('data.json', 'w') as json_file:
                 json.dump(newpath, json_file)
     #using path get files from directory
-def get_files(path, extensions, files_grabbed_list):
+def get_files(path, extensions):
+    files_grabbed_list = []
     for ext in extensions:
         files_grabbed_list.extend(Path(path).glob(ext))
     return files_grabbed_list
